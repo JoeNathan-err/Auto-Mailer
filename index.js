@@ -1,86 +1,55 @@
-const express = require("express");
+// backend/server.js
 
-const mongoose = require("mongoose");
+const express = require("express");
 const bodyParser = require("body-parser");
+const cors = require("cors");
 const nodemailer = require("nodemailer");
+require("dotenv").config();
 
 const app = express();
-const port = 3000;
-const cors = require("cors");
-require("dotenv").config();
-const jwt = require("jsonwebtoken");
-const path = require("path");
+const port = process.env.PORT || 3000;
 
-app.use(
-  cors({
-    origin: "*",
-    methods: "GET,POST,PATCH,DELETE,PUT,OPTIONS",
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-
-app.use(bodyParser.urlencoded({ extended: false }));
+// Middleware
+app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, "public")));
 
-mongoose
-  .connect(process.env.DB_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log("Connected to MongoDB");
-  })
-  .catch((err) => {
-    console.log("Error Connecting to MongoDB");
-  });
-
-app.listen(port, () => {
-  console.log("server is running on port 3000");
-});
-
-// CONFIGURATIONS
-const sendEmail = async (email, subject, message, name) => {
-  //create a nodemailer transporter
-
+// Email sender function
+const sendEmail = async ({ name, email, subject, message }) => {
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    service: "gmail", // Or another email service
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
   });
 
-  //compose the email message
   const mailOptions = {
-    from: email,
-    to: "kisibojonathan150@gmail.com",
-    subject: subject,
-    text: `My name is ${name},\n ${message}`,
+    from: `"${name}" <${email}>`,
+    to: "kisibojonathan150@gmail.com", // your receiving email
+    subject,
+    text: `From: ${name} <${email}>\n\n${message}`,
   };
 
-  try {
-    await transporter.sendMail(mailOptions);
-  } catch (error) {
-    console.log("error sending email", error);
-  }
+  await transporter.sendMail(mailOptions);
 };
 
-// POST route to handle contact form data
-app.post("/contact", (req, res) => {
+// Contact form endpoint
+app.post("/contact", async (req, res) => {
   const { name, email, subject, message } = req.body;
 
-  // You can now use this data (e.g., save to DB, send email, etc.)
-  console.log("Received contact form data:");
-  console.log("Name:", name);
-  console.log("Email:", email);
-  console.log("Subject:", subject);
-  console.log("Message:", message);
+  if (!name || !email || !subject || !message) {
+    return res.status(400).json({ message: "All fields are required." });
+  }
 
   try {
-    sendEmail(name, email, subject, message);
-  } catch (err) {
-    console.log(err);
+    await sendEmail({ name, email, subject, message });
+    res.status(200).json({ message: "Email sent successfully!" });
+  } catch (error) {
+    console.error("Error sending email:", error);
+    res.status(500).json({ message: "Something went wrong." });
   }
-  res.status(200).json({ message: "Contact form submitted successfully!" });
+});
+
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
