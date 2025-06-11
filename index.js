@@ -42,7 +42,7 @@ const sendEmail = async ({ name, email, subject, message }) => {
     from: `"${name}" <${email}>`,
     to: "kisibojonathan150@gmail.com",
     subject,
-    text: `From: ${name} <${email}>\n\n${message}`,
+    text: `From: ${name} <${email}>\n\n${message}\nBest Regaurds,\n${name}`,
   };
 
   await transporter.sendMail(mailOptions);
@@ -51,9 +51,7 @@ const sendEmail = async ({ name, email, subject, message }) => {
 // Contact form endpoint
 app.post("/contact", async (req, res) => {
   const { formData } = req.body;
-  console.log("====================================");
-  console.log(formData);
-  console.log("====================================");
+
   if (
     !formData.name ||
     !formData.email ||
@@ -70,7 +68,7 @@ app.post("/contact", async (req, res) => {
       name: formData.name,
       email: formData.email,
       subject: formData.service,
-      message: formData.message,
+      message: formData.message.trim(),
     });
     res.status(200).json({ message: "Email sent successfully!" });
   } catch (error) {
