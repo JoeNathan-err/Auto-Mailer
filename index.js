@@ -52,14 +52,26 @@ const sendEmail = async ({ name, email, subject, message }) => {
 
 // Contact form endpoint
 app.post("/contact", async (req, res) => {
-  const { name, email, subject, message } = req.body;
+  const { formData } = req.body;
 
-  if (!name || !email || !subject || !message) {
-    return res.status(400).json({ message: "All fields are required." });
+  if (
+    !formData.name ||
+    !formData.email ||
+    !formData.service ||
+    !formData.message
+  ) {
+    return res
+      .status(400)
+      .json({ message: "Some feilds are missing, please try again!" });
   }
 
   try {
-    await sendEmail({ name, email, subject, message });
+    await sendEmail({
+      name: formData.name,
+      email: formData.email,
+      subject: formData.service,
+      message: formData.message,
+    });
     res.status(200).json({ message: "Email sent successfully!" });
   } catch (error) {
     console.error("Error sending email:", error);
