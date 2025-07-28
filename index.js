@@ -42,7 +42,7 @@ const sendEmail = async ({ name, email, subject, message }) => {
     from: `"${name}" <${email}>`,
     to: "kisibojonathan150@gmail.com",
     subject,
-    text: `From: ${name} <${email}>\n\n${message}\nBest Regaurds,\n${name}`,
+    text: `From: ${name} <${email}>\n\n${message}\n\nBest Regaurds,\n${name}`,
   };
 
   await transporter.sendMail(mailOptions);
